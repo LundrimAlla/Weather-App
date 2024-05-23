@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Main card container for the weather app -->
+    <div class="card">
+        <!-- Search bar for entering the city name -->
+        <div class="search">
+            <input type="text" id="cityInput" placeholder="enter city name" spellcheck="false">
+            <button id="searchButton"><img src="Images/search.png"></button>
+        </div>
+        <!-- Error message for invalid city name, hidden by default -->
+        <div class="error" style="display: none;">
+            <p>Invalid city name</p>
+        </div>
+        <!-- Weather information section, hidden by default -->
+        <div class="weather" style="display: none;">
+            <img src="Images/rain.jpeg" class="weather-icon" id="weatherIcon">
+            <h1 class="temp">27°c</h1>
+            <h2 class="city">Struga</h2>
+            <div class="details">
+                <div class="col">
+                    <img src="Images/humidity.jpeg">
+                    <div>
+                        <p class="humidity">35%</p>
+                        <p>Humidity</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <img src="Images/wind.jpeg">
+                    <div>
+                        <p class="wind">12 km/h</p>
+                        <p>Wind Speed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API key for OpenWeatherMap
+        const apiKey = "63d9b84b94e1d2a828974a4c1ac5b6f8";
+        // Base URL for the OpenWeatherMap API
+        const apiUrl = "https://api.openweathermap.org/data/2.5/weather?units=metric&q=";
+
+        // Get references to the input box, button, and weather icon
+        const searchBox = document.getElementById("cityInput");
+        const searchBtn = document.getElementById("searchButton");
+        const weatherIcon = document.getElementById("weatherIcon");
+
+        // Function to fetch and display weather data
+        async function checkWeather(city) {
+            // Check if city name is provided
+            if (!city) {
+                console.error('Please enter a city name.');
+                return;
+            }
+
+            try {
+                // Fetch weather data from the API
+                const response = await fetch(apiUrl + city + `&appid=${apiKey}`);
+                if (!response.ok) {
+                    // Handle 404 error (city not found)
+                    if (response.status == 404) {
+                        document.querySelector(".error").style.display = "block";
+                        document.querySelector(".weather").style.display = "none";
+                    } else {
+                        console.error('Error fetching the weather data:', response.statusText);
+                    }
+                    return;
+                }
+
+                // Parse the response data
+                const data = await response.json();
+                console.log(data);
+
+                // Update the UI with the fetched weather data
+                document.querySelector(".city").innerHTML = data.name;
+                document.querySelector(".temp").innerHTML = Math.round(data.main.temp) + "°c";
+                document.querySelector(".humidity").innerHTML = data.main.humidity + "%";
+                document.querySelector(".wind").innerHTML = data.wind.speed + " km/h";
+
+                // Set the appropriate weather icon
+                const weatherMain = data.weather[0].main;
+                if (weatherMain === "Clouds") {
+                    weatherIcon.src = "Images/clouds.jpeg";
+                } else if (weatherMain === "Clear") {
+                    weatherIcon.src = "Images/clear.jpeg";
+                } else if (weatherMain === "Rain") {
+                    weatherIcon.src = "Images/rain.jpeg";
+                } else if (weatherMain === "Drizzle") {
+                    weatherIcon.src = "Images/drizzle.jpeg";
+                } else if (weatherMain === "Mist") {
+                    weatherIcon.src = "Images/mist.jpeg";
+                }
+
+                // Hide the error message and show the weather information
+                document.querySelector(".error").style.display = "none";
+                document.querySelector(".weather").style.display = "block";
+            } catch (error) {
+                // Handle any other errors
+                console.error('Error fetching the weather data:', error);
+                document.querySelector(".error").style.display = "block";
+                document.querySelector(".weather").style.display = "none";
+            }
+        }
+
+        // Event listener for the search button
+        searchBtn.addEventListener("click", () => {
+            const city = searchBox.value;
+            checkWeather(city);
+        });
+
+        // Optionally, call checkWeather with a default city when the script loads
+        checkWeather('Struga');
+    </script>
+
+</body>
+
+</html>
